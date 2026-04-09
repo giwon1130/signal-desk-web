@@ -140,11 +140,26 @@ type RecommendationTrackRecord = {
   source: string
 }
 
+type RecommendationExecutionLog = {
+  date: string
+  market: string
+  ticker: string
+  name: string
+  stage: string
+  status: string
+  rationale: string
+  confidence: number | null
+  expectedReturnRate: number | null
+  realizedReturnRate: number | null
+  source: string
+}
+
 type AIRecommendationSection = {
   generatedDate: string
   summary: string
   picks: RecommendationPick[]
   trackRecords: RecommendationTrackRecord[]
+  executionLogs: RecommendationExecutionLog[]
 }
 
 type PaperPosition = {
@@ -378,6 +393,7 @@ const emptyOverview: MarketOverview = {
     summary: '',
     picks: [],
     trackRecords: [],
+    executionLogs: [],
   },
   paperTrading: {
     cash: 0,
@@ -1996,6 +2012,36 @@ export default function App() {
                         삭제
                       </button>
                     ) : null}
+                  </div>
+                </article>
+              ))}
+            </div>
+
+            <div className="section-heading">
+              <div>
+                <p className="eyebrow">Execution Log</p>
+                <h2>추천 근거/성과 로그</h2>
+              </div>
+              <SourceBadge label="MIXED" tone="mixed" />
+            </div>
+            <div className="watchlist">
+              {overview?.aiRecommendations.executionLogs.map((log) => (
+                <article key={`${log.date}-${log.market}-${log.ticker}-${log.stage}`} className="watch-item">
+                  <div>
+                    <strong>{log.name}</strong>
+                    <span>{log.date} · {log.market} · {log.ticker} · {log.stage}</span>
+                  </div>
+                  <div className="watch-metrics">
+                    <strong>{log.status}</strong>
+                    <span className={((log.realizedReturnRate ?? 0) >= 0 ? 'up' : 'down')}>
+                      {log.realizedReturnRate == null ? '-' : formatSignedRate(log.realizedReturnRate)}
+                    </span>
+                  </div>
+                  <p>{log.rationale}</p>
+                  <div className="inline-actions">
+                    {log.confidence != null ? <span className="mini-badge base">신뢰도 {log.confidence}</span> : null}
+                    {log.expectedReturnRate != null ? <span className="mini-badge base">예상 {formatSignedRate(log.expectedReturnRate)}</span> : null}
+                    <span className={`mini-badge ${log.source === 'USER' ? 'user' : 'base'}`}>{log.source}</span>
                   </div>
                 </article>
               ))}
