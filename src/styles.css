@@ -438,6 +438,47 @@ body {
   font-size: 14px;
 }
 
+.stock-detail-panel {
+  margin-top: 16px;
+  padding: 16px;
+  border-radius: 20px;
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0.03), rgba(15, 23, 42, 0.01));
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  display: grid;
+  gap: 12px;
+}
+
+.stock-detail-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.stock-detail-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.stock-detail-card {
+  border-radius: 14px;
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  background: rgba(248, 250, 252, 0.9);
+  padding: 12px;
+}
+
+.stock-detail-card strong {
+  display: block;
+  margin-top: 6px;
+}
+
+.stock-detail-card p {
+  margin-top: 8px;
+  color: #475569;
+  font-size: 13px;
+}
+
 .watch-form {
   display: grid;
   gap: 12px;
@@ -779,6 +820,7 @@ body {
   .source-list,
   .index-grid,
   .chart-stats-grid,
+  .stock-detail-grid,
   .news-summary-grid {
     grid-template-columns: 1fr;
   }

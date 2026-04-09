@@ -485,6 +485,20 @@ type AiPickNewsLink = {
   relatedClusters: NewsCluster[]
 }
 
+type StockDetailSnapshot = {
+  market: 'KR' | 'US'
+  ticker: string
+  name: string
+  sector: string
+  price: number
+  changeRate: number
+  stance: string
+  watchItem?: WatchItem
+  portfolioPosition?: HoldingPosition
+  aiPick?: RecommendationPick
+  relatedNews: MarketNews[]
+}
+
 function getDirectionLabel(direction: NewsSignalDirection) {
   switch (direction) {
     case 'positive':
@@ -668,6 +682,7 @@ export default function App() {
   const [isSavingAiTrackRecord, setIsSavingAiTrackRecord] = useState(false)
   const [showAllNewsGroups, setShowAllNewsGroups] = useState(false)
   const [expandedNewsClusters, setExpandedNewsClusters] = useState<string[]>([])
+  const [selectedStockKey, setSelectedStockKey] = useState('')
 
   const fetchSummary = async () => {
     try {
@@ -811,6 +826,40 @@ export default function App() {
     )
   }, [overview, stockSearch])
 
+  const selectedStockDetail = useMemo<StockDetailSnapshot | null>(() => {
+    if (!selectedStockKey) return null
+    const [market, ticker] = selectedStockKey.split(':')
+    if (!market || !ticker) return null
+    const isKr = market === 'KR'
+    const source = isKr ? overview.koreaMarket.leadingStocks : overview.usMarket.leadingStocks
+    const target = source.find((item) => item.ticker === ticker)
+    if (!target) return null
+
+    const relatedNews = overview.news
+      .filter((item) => item.market === market)
+      .filter((item) => {
+        const text = `${item.title} ${item.impact}`.toLowerCase()
+        return text.includes(target.ticker.toLowerCase())
+          || text.includes(target.name.toLowerCase())
+          || text.includes(target.sector.toLowerCase())
+      })
+      .slice(0, 4)
+
+    return {
+      market: isKr ? 'KR' : 'US',
+      ticker: target.ticker,
+      name: target.name,
+      sector: target.sector,
+      price: target.price,
+      changeRate: target.changeRate,
+      stance: target.stance,
+      watchItem: overview.watchlist.find((item) => item.market === market && item.ticker === ticker),
+      portfolioPosition: overview.portfolio.positions.find((item) => item.market === market && item.ticker === ticker),
+      aiPick: overview.aiRecommendations.picks.find((item) => item.market === market && item.ticker === ticker),
+      relatedNews,
+    }
+  }, [overview, selectedStockKey])
+
   const userWatchCount = useMemo(
     () => workspaceCounts.watchlistCount,
     [workspaceCounts],
@@ -890,6 +939,22 @@ export default function App() {
       }
     })
   }, [newsClusters, overview.aiRecommendations.picks])
+
+  useEffect(() => {
+    if (!filteredMovers.length) {
+      setSelectedStockKey('')
+      return
+    }
+    const selectedStillExists = filteredMovers.some((item) => {
+      const market = overview.koreaMarket.leadingStocks.some((stock) => stock.ticker === item.ticker) ? 'KR' : 'US'
+      return `${market}:${item.ticker}` === selectedStockKey
+    })
+    if (selectedStillExists) return
+
+    const first = filteredMovers[0]
+    const market = overview.koreaMarket.leadingStocks.some((stock) => stock.ticker === first.ticker) ? 'KR' : 'US'
+    setSelectedStockKey(`${market}:${first.ticker}`)
+  }, [filteredMovers, overview.koreaMarket.leadingStocks, selectedStockKey])
 
   const toggleNewsCluster = (clusterKey: string) => {
     setExpandedNewsClusters((prev) =>
@@ -1494,6 +1559,7 @@ export default function App() {
             <div className="watchlist">
               {filteredMovers.map((item) => {
                 const market = overview?.koreaMarket.leadingStocks.some((stock) => stock.ticker === item.ticker) ? 'KR' : 'US'
+                const detailKey = `${market}:${item.ticker}`
                 return (
                   <article key={`${item.ticker}-${item.name}`} className="watch-item">
                     <div>
@@ -1506,6 +1572,9 @@ export default function App() {
                     </div>
                     <p>{item.stance}</p>
                     <div className="inline-actions">
+                      <button type="button" className="ghost-button" onClick={() => setSelectedStockKey(detailKey)}>
+                        상세 보기
+                      </button>
                       <button type="button" className="action-button" onClick={() => applyMoverToWatchForm(item, market)}>
                         관심 추가
                       </button>
@@ -1514,6 +1583,73 @@ export default function App() {
                 )
               })}
             </div>
+
+            {selectedStockDetail ? (
+              <article className="stock-detail-panel">
+                <div className="stock-detail-header">
+                  <div>
+                    <p className="eyebrow">Stock Detail</p>
+                    <h3>{selectedStockDetail.name}</h3>
+                    <span>{selectedStockDetail.market} · {selectedStockDetail.ticker} · {selectedStockDetail.sector}</span>
+                  </div>
+                  <div className="watch-metrics">
+                    <strong>{formatNumber(selectedStockDetail.price)}</strong>
+                    <span className={selectedStockDetail.changeRate >= 0 ? 'up' : 'down'}>
+                      {formatSignedRate(selectedStockDetail.changeRate)}
+                    </span>
+                  </div>
+                </div>
+
+                <p>{selectedStockDetail.stance}</p>
+
+                <div className="stock-detail-grid">
+                  <article className="stock-detail-card">
+                    <span className="label">관심종목</span>
+                    <strong>{selectedStockDetail.watchItem ? '등록됨' : '미등록'}</strong>
+                    <p>{selectedStockDetail.watchItem?.note ?? '아직 관심종목 메모가 없어.'}</p>
+                  </article>
+                  <article className="stock-detail-card">
+                    <span className="label">포트폴리오</span>
+                    <strong>{selectedStockDetail.portfolioPosition ? '보유 중' : '미보유'}</strong>
+                    <p>
+                      {selectedStockDetail.portfolioPosition
+                        ? `${selectedStockDetail.portfolioPosition.quantity}주 · ${formatSignedRate(selectedStockDetail.portfolioPosition.profitRate)}`
+                        : '현재 포트폴리오에 없음'}
+                    </p>
+                  </article>
+                  <article className="stock-detail-card">
+                    <span className="label">AI 추천</span>
+                    <strong>{selectedStockDetail.aiPick ? '추천 있음' : '추천 없음'}</strong>
+                    <p>
+                      {selectedStockDetail.aiPick
+                        ? `신뢰도 ${selectedStockDetail.aiPick.confidence} · 예상 ${formatSignedRate(selectedStockDetail.aiPick.expectedReturnRate)}`
+                        : '현재 AI 추천 목록에 없음'}
+                    </p>
+                  </article>
+                </div>
+
+                <div className="stock-detail-news">
+                  <div className="section-heading">
+                    <div>
+                      <p className="eyebrow">Related News</p>
+                      <h3>연관 뉴스</h3>
+                    </div>
+                  </div>
+                  {selectedStockDetail.relatedNews.length ? (
+                    <div className="source-list">
+                      {selectedStockDetail.relatedNews.map((item) => (
+                        <a key={`${item.source}-${item.title}`} href={item.url} target="_blank" rel="noreferrer" className="source-item">
+                          <strong>{item.title}</strong>
+                          <span>{item.source} · {item.impact}</span>
+                        </a>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="source-summary">직접 매칭된 뉴스가 없어. 뉴스 분류 기준을 확장하면 연결률이 올라가.</p>
+                  )}
+                </div>
+              </article>
+            ) : null}
           </article>
 
           <article className="panel side-stack">
