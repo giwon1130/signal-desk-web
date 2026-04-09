@@ -24,6 +24,11 @@ type ChartPeriodSnapshot = {
 type ChartPoint = {
   label: string
   value: number
+  open: number
+  high: number
+  low: number
+  close: number
+  volume: number
 }
 
 type ChartStats = {
@@ -32,6 +37,7 @@ type ChartStats = {
   low: number
   changeRate: number
   range: number
+  averageVolume: number
 }
 
 type SentimentMetric = {

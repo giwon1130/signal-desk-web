@@ -3,6 +3,11 @@ import { type ComponentType, useEffect, useState } from 'react'
 type ChartPoint = {
   label: string
   value: number
+  open: number
+  high: number
+  low: number
+  close: number
+  volume: number
 }
 
 type ChartStats = {
@@ -11,6 +16,7 @@ type ChartStats = {
   low: number
   changeRate: number
   range: number
+  averageVolume: number
 }
 
 type ChartPeriodSnapshot = {
@@ -33,6 +39,15 @@ function formatNumber(value: number) {
 
 function formatSignedRate(value: number) {
   return `${value > 0 ? '+' : ''}${value.toFixed(2)}%`
+}
+
+function computeMovingAverage(points: ChartPoint[], period: number) {
+  return points.map((_, index) => {
+    if (index + 1 < period) return null
+    const window = points.slice(index + 1 - period, index + 1)
+    const sum = window.reduce((acc, item) => acc + item.close, 0)
+    return Number((sum / period).toFixed(2))
+  })
 }
 
 function IndexChartCard({ item }: { item: IndexMetric }) {
@@ -62,17 +77,86 @@ function IndexChartCard({ item }: { item: IndexMetric }) {
 
   const isUp = activePeriod.stats.changeRate >= 0
   const seriesColor = isUp ? '#dc2626' : '#2563eb'
-  const areaColor = isUp ? 'rgba(220, 38, 38, 0.18)' : 'rgba(37, 99, 235, 0.18)'
+  const xLabels = activePeriod.points.map((point) => point.label)
+  const candleSeries = activePeriod.points.map((point) => [point.open, point.close, point.low, point.high])
+  const volumes = activePeriod.points.map((point) => point.volume)
+  const ma5 = computeMovingAverage(activePeriod.points, 5)
+  const ma20 = computeMovingAverage(activePeriod.points, 20)
+  const ma60 = computeMovingAverage(activePeriod.points, 60)
+  const volumeMax = Math.max(...volumes, 1)
 
   const chartOption = {
     animation: true,
-    grid: {
-      left: 18,
-      right: 16,
-      top: 24,
-      bottom: 26,
-      containLabel: true,
-    },
+    xAxis: [
+      {
+        type: 'category',
+        data: xLabels,
+        boundaryGap: true,
+        axisLine: { lineStyle: { color: 'rgba(148, 163, 184, 0.28)' } },
+        axisTick: { show: false },
+        axisLabel: {
+          color: '#64748b',
+          fontSize: 11,
+          hideOverlap: true,
+        },
+        min: 'dataMin',
+        max: 'dataMax',
+      },
+      {
+        type: 'category',
+        gridIndex: 1,
+        data: xLabels,
+        boundaryGap: true,
+        axisLine: { lineStyle: { color: 'rgba(148, 163, 184, 0.2)' } },
+        axisTick: { show: false },
+        axisLabel: { show: false },
+        min: 'dataMin',
+        max: 'dataMax',
+      },
+    ],
+    yAxis: [
+      {
+        type: 'value',
+        scale: true,
+        axisLine: { show: false },
+        axisTick: { show: false },
+        splitLine: { lineStyle: { color: 'rgba(148, 163, 184, 0.12)' } },
+        axisLabel: {
+          color: '#64748b',
+          formatter: (value: number) => formatNumber(Math.round(value)),
+        },
+      },
+      {
+        type: 'value',
+        gridIndex: 1,
+        min: 0,
+        max: Math.ceil(volumeMax * 1.08),
+        axisLine: { show: false },
+        axisTick: { show: false },
+        splitLine: { show: false },
+        axisLabel: {
+          color: '#94a3b8',
+          fontSize: 10,
+          formatter: (value: number) => `${Math.round(value / 1000)}k`,
+        },
+      },
+    ],
+    grid: [
+      {
+        left: 18,
+        right: 16,
+        top: 20,
+        height: '56%',
+        containLabel: true,
+      },
+      {
+        left: 18,
+        right: 16,
+        top: '80%',
+        height: '14%',
+        containLabel: true,
+      },
+    ],
     tooltip: {
       trigger: 'axis',
       backgroundColor: 'rgba(15, 23, 42, 0.94)',
@@ -80,46 +164,68 @@ function IndexChartCard({ item }: { item: IndexMetric }) {
       textStyle: { color: '#f8fafc' },
       formatter: (params: unknown) => {
         const safeParams = Array.isArray(params) ? params : []
-        const first = safeParams[0] as { axisValue?: string; value?: number } | undefined
-        if (!first) return ''
-        return `${first.axisValue}<br/>${item.label}: ${formatNumber(Number(first.value ?? 0))}`
+        const candle = safeParams.find((entry) => (entry as { seriesName?: string }).seriesName === 'Candle') as { data?: number[]; axisValue?: string } | undefined
+        const volume = safeParams.find((entry) => (entry as { seriesName?: string }).seriesName === 'Volume') as { data?: number } | undefined
+        if (!candle) return ''
+        const [open, close, low, high] = candle.data ?? [0, 0, 0, 0]
+        return [
+          candle.axisValue ?? '',
+          `${item.label} O ${formatNumber(Math.round(open))} / H ${formatNumber(Math.round(high))}`,
+          `L ${formatNumber(Math.round(low))} / C ${formatNumber(Math.round(close))}`,
+          `거래량 ${formatNumber(Math.round(Number(volume?.data ?? 0)))}`,
+        ].join('<br/>')
       },
     },
-    xAxis: {
-      type: 'category',
-      data: activePeriod.points.map((point) => point.label),
-      boundaryGap: false,
-      axisLine: { lineStyle: { color: 'rgba(148, 163, 184, 0.28)' } },
-      axisTick: { show: false },
-      axisLabel: {
-        color: '#64748b',
-        fontSize: 11,
-        hideOverlap: true,
-      },
-    },
-    yAxis: {
-      type: 'value',
-      scale: true,
-      axisLine: { show: false },
-      axisTick: { show: false },
-      splitLine: { lineStyle: { color: 'rgba(148, 163, 184, 0.12)' } },
-      axisLabel: {
-        color: '#64748b',
-        formatter: (value: number) => formatNumber(Math.round(value)),
-      },
+    axisPointer: {
+      link: [{ xAxisIndex: [0, 1] }],
     },
     series: [
       {
-        name: item.label,
+        name: 'Candle',
+        type: 'candlestick',
+        data: candleSeries,
+        itemStyle: {
+          color: '#dc2626',
+          color0: '#2563eb',
+          borderColor: '#dc2626',
+          borderColor0: '#2563eb',
+        },
+      },
+      {
+        name: 'MA5',
         type: 'line',
+        data: ma5,
         smooth: true,
-        symbol: 'circle',
-        symbolSize: 5,
         showSymbol: false,
-        lineStyle: { width: 3, color: seriesColor },
-        areaStyle: { color: areaColor },
-        itemStyle: { color: seriesColor },
-        data: activePeriod.points.map((point) => point.value),
+        lineStyle: { width: 1.6, color: '#f59e0b' },
+      },
+      {
+        name: 'MA20',
+        type: 'line',
+        data: ma20,
+        smooth: true,
+        showSymbol: false,
+        lineStyle: { width: 1.6, color: '#6366f1' },
+      },
+      {
+        name: 'MA60',
+        type: 'line',
+        data: ma60,
+        smooth: true,
+        showSymbol: false,
+        lineStyle: { width: 1.6, color: '#10b981' },
+      },
+      {
+        name: 'Volume',
+        type: 'bar',
+        xAxisIndex: 1,
+        yAxisIndex: 1,
+        data: activePeriod.points.map((point) => ({
+          value: point.volume,
+          itemStyle: {
+            color: point.close >= point.open ? 'rgba(220, 38, 38, 0.56)' : 'rgba(37, 99, 235, 0.56)',
+          },
+        })),
       },
     ],
   }
@@ -133,7 +239,7 @@ function IndexChartCard({ item }: { item: IndexMetric }) {
         <div>
           <span className="label">{item.label}</span>
           <strong>{formatNumber(Math.round(activePeriod.stats.latest * 100) / 100)}</strong>
-          <p className={activePeriod.stats.changeRate >= 0 ? 'up' : 'down'}>{formatSignedRate(activePeriod.stats.changeRate)}</p>
+          <p className={activePeriod.stats.changeRate >= 0 ? 'up' : 'down'}>{formatSignedRate(activePeriod.stats.changeRate)} · {seriesColor === '#dc2626' ? '상승 우위' : '하락 우위'}</p>
         </div>
         <div className="index-period-tabs">
           {item.periods.map((period) => (
@@ -175,6 +281,10 @@ function IndexChartCard({ item }: { item: IndexMetric }) {
         <div>
           <span className="label">변동폭</span>
           <strong>{formatNumber(Math.round(activePeriod.stats.range * 100) / 100)}</strong>
+        </div>
+        <div>
+          <span className="label">평균 거래량</span>
+          <strong>{formatNumber(activePeriod.stats.averageVolume)}</strong>
         </div>
       </div>
     </article>
