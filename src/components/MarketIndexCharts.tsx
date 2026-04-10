@@ -1,4 +1,16 @@
-import { type ComponentType, useEffect, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import {
+  CandlestickSeries,
+  ColorType,
+  CrosshairMode,
+  HistogramSeries,
+  LineSeries,
+  createChart,
+  type IChartApi,
+  type ISeriesApi,
+  type Time,
+  type UTCTimestamp,
+} from 'lightweight-charts'
 
 type ChartPoint = {
   label: string
@@ -50,49 +62,195 @@ function computeMovingAverage(points: ChartPoint[], period: number) {
   })
 }
 
-function IndexChartCard({ item }: { item: IndexMetric }) {
-  const [activePeriodKey, setActivePeriodKey] = useState<string>(item.periods[0]?.key ?? '1D')
-  const [ChartComponent, setChartComponent] = useState<null | ComponentType<{ option: unknown; notMerge?: boolean; lazyUpdate?: boolean; className?: string }>>(null)
-  const activePeriod = item.periods.find((period) => period.key === activePeriodKey) ?? item.periods[0]
+function toChartTime(index: number): UTCTimestamp {
+  return (index + 1) as UTCTimestamp
+}
+
+function buildAxisLabels(points: ChartPoint[]) {
+  const labels = new Map<number, string>()
+  points.forEach((point, index) => {
+    labels.set(index + 1, point.label)
+  })
+  return labels
+}
+
+function IndexChartCanvas({ period }: { period: ChartPeriodSnapshot }) {
+  const containerRef = useRef<HTMLDivElement | null>(null)
+  const chartRef = useRef<IChartApi | null>(null)
+  const candleSeriesRef = useRef<ISeriesApi<'Candlestick'> | null>(null)
+  const volumeSeriesRef = useRef<ISeriesApi<'Histogram'> | null>(null)
+  const ma5SeriesRef = useRef<ISeriesApi<'Line'> | null>(null)
+  const ma20SeriesRef = useRef<ISeriesApi<'Line'> | null>(null)
+  const ma60SeriesRef = useRef<ISeriesApi<'Line'> | null>(null)
+
+  const axisLabels = useMemo(() => buildAxisLabels(period.points), [period.points])
+  const candleData = useMemo(
+    () => period.points.map((point, index) => ({
+      time: toChartTime(index),
+      open: point.open,
+      high: point.high,
+      low: point.low,
+      close: point.close,
+    })),
+    [period.points],
+  )
+  const volumeData = useMemo(
+    () =>
+      period.points.map((point, index) => ({
+        time: toChartTime(index),
+        value: point.volume,
+        color: point.close >= point.open ? 'rgba(220, 38, 38, 0.50)' : 'rgba(37, 99, 235, 0.50)',
+      })),
+    [period.points],
+  )
+  const ma5Data = useMemo(
+    () =>
+      computeMovingAverage(period.points, 5).flatMap((value, index) =>
+        value == null ? [] : [{ time: toChartTime(index), value }],
+      ),
+    [period.points],
+  )
+  const ma20Data = useMemo(
+    () =>
+      computeMovingAverage(period.points, 20).flatMap((value, index) =>
+        value == null ? [] : [{ time: toChartTime(index), value }],
+      ),
+    [period.points],
+  )
+  const ma60Data = useMemo(
+    () =>
+      computeMovingAverage(period.points, 60).flatMap((value, index) =>
+        value == null ? [] : [{ time: toChartTime(index), value }],
+      ),
+    [period.points],
+  )
 
   useEffect(() => {
-    let mounted = true
-    Promise.all([
-      import('echarts-for-react/lib/core'),
-      import('echarts/core'),
-      import('echarts/charts'),
-      import('echarts/components'),
-      import('echarts/renderers'),
-    ]).then(([reactCoreModule, echartsCoreModule, chartsModule, componentsModule, renderersModule]) => {
-      const { default: ReactEChartsCore } = reactCoreModule
-      const { echarts } = echartsCoreModule
-      const { CandlestickChart, BarChart, LineChart } = chartsModule
-      const { GridComponent, TooltipComponent, AxisPointerComponent } = componentsModule
-      const { CanvasRenderer } = renderersModule
+    const container = containerRef.current
+    if (!container || chartRef.current) return
 
-      echarts.use([
-        CandlestickChart,
-        BarChart,
-        LineChart,
-        GridComponent,
-        TooltipComponent,
-        AxisPointerComponent,
-        CanvasRenderer,
-      ])
-
-      if (mounted) {
-        setChartComponent(() => ((props) => <ReactEChartsCore echarts={echarts} {...props} />) as ComponentType<{
-          option: unknown
-          notMerge?: boolean
-          lazyUpdate?: boolean
-          className?: string
-        }>)
-      }
+    const chart = createChart(container, {
+      autoSize: true,
+      height: 220,
+      layout: {
+        background: { type: ColorType.Solid, color: 'transparent' },
+        textColor: '#64748b',
+        attributionLogo: false,
+      },
+      grid: {
+        vertLines: { color: 'rgba(148, 163, 184, 0.08)' },
+        horzLines: { color: 'rgba(148, 163, 184, 0.10)' },
+      },
+      crosshair: {
+        mode: CrosshairMode.Normal,
+        vertLine: {
+          color: 'rgba(15, 23, 42, 0.28)',
+          width: 1,
+          style: 0,
+          labelBackgroundColor: '#0f172a',
+        },
+        horzLine: {
+          color: 'rgba(15, 23, 42, 0.18)',
+          labelBackgroundColor: '#0f172a',
+        },
+      },
+      rightPriceScale: {
+        borderColor: 'rgba(148, 163, 184, 0.16)',
+      },
+      timeScale: {
+        borderColor: 'rgba(148, 163, 184, 0.16)',
+        timeVisible: true,
+        secondsVisible: false,
+        tickMarkFormatter: (time: Time) => axisLabels.get(Number(time)) ?? '',
+      },
+      localization: {
+        priceFormatter: (price: number) => formatNumber(Math.round(price)),
+      },
     })
+
+    const candleSeries = chart.addSeries(CandlestickSeries, {
+      upColor: '#dc2626',
+      downColor: '#2563eb',
+      wickUpColor: '#dc2626',
+      wickDownColor: '#2563eb',
+      borderVisible: false,
+      priceLineVisible: false,
+      lastValueVisible: true,
+    })
+    const volumeSeries = chart.addSeries(HistogramSeries, {
+      priceFormat: { type: 'volume' },
+      priceScaleId: 'volume',
+      lastValueVisible: false,
+      priceLineVisible: false,
+    })
+    const ma5Series = chart.addSeries(LineSeries, {
+      color: '#f59e0b',
+      lineWidth: 2,
+      crosshairMarkerVisible: false,
+      lastValueVisible: false,
+      priceLineVisible: false,
+    })
+    const ma20Series = chart.addSeries(LineSeries, {
+      color: '#6366f1',
+      lineWidth: 2,
+      crosshairMarkerVisible: false,
+      lastValueVisible: false,
+      priceLineVisible: false,
+    })
+    const ma60Series = chart.addSeries(LineSeries, {
+      color: '#10b981',
+      lineWidth: 2,
+      crosshairMarkerVisible: false,
+      lastValueVisible: false,
+      priceLineVisible: false,
+    })
+
+    chart.priceScale('volume').applyOptions({
+      scaleMargins: {
+        top: 0.78,
+        bottom: 0,
+      },
+    })
+    chart.priceScale('right').applyOptions({
+      scaleMargins: {
+        top: 0.08,
+        bottom: 0.26,
+      },
+    })
+
+    chartRef.current = chart
+    candleSeriesRef.current = candleSeries
+    volumeSeriesRef.current = volumeSeries
+    ma5SeriesRef.current = ma5Series
+    ma20SeriesRef.current = ma20Series
+    ma60SeriesRef.current = ma60Series
+
     return () => {
-      mounted = false
+      chart.remove()
+      chartRef.current = null
+      candleSeriesRef.current = null
+      volumeSeriesRef.current = null
+      ma5SeriesRef.current = null
+      ma20SeriesRef.current = null
+      ma60SeriesRef.current = null
     }
-  }, [])
+  }, [axisLabels])
+
+  useEffect(() => {
+    candleSeriesRef.current?.setData(candleData)
+    volumeSeriesRef.current?.setData(volumeData)
+    ma5SeriesRef.current?.setData(ma5Data)
+    ma20SeriesRef.current?.setData(ma20Data)
+    ma60SeriesRef.current?.setData(ma60Data)
+    chartRef.current?.timeScale().fitContent()
+  }, [candleData, volumeData, ma5Data, ma20Data, ma60Data])
+
+  return <div ref={containerRef} className="tv-chart-container" />
+}
+
+function IndexChartCard({ item }: { item: IndexMetric }) {
+  const [activePeriodKey, setActivePeriodKey] = useState<string>(item.periods[0]?.key ?? '1D')
+  const activePeriod = item.periods.find((period) => period.key === activePeriodKey) ?? item.periods[0]
 
   if (!activePeriod) {
     return (
@@ -104,162 +262,8 @@ function IndexChartCard({ item }: { item: IndexMetric }) {
     )
   }
 
-  const isUp = activePeriod.stats.changeRate >= 0
-  const seriesColor = isUp ? '#dc2626' : '#2563eb'
-  const xLabels = activePeriod.points.map((point) => point.label)
-  const candleSeries = activePeriod.points.map((point) => [point.open, point.close, point.low, point.high])
-  const volumes = activePeriod.points.map((point) => point.volume)
-  const ma5 = computeMovingAverage(activePeriod.points, 5)
-  const ma20 = computeMovingAverage(activePeriod.points, 20)
-  const ma60 = computeMovingAverage(activePeriod.points, 60)
-  const volumeMax = Math.max(...volumes, 1)
-
-  const chartOption = {
-    animation: true,
-    xAxis: [
-      {
-        type: 'category',
-        data: xLabels,
-        boundaryGap: true,
-        axisLine: { lineStyle: { color: 'rgba(148, 163, 184, 0.28)' } },
-        axisTick: { show: false },
-        axisLabel: {
-          color: '#64748b',
-          fontSize: 11,
-          hideOverlap: true,
-        },
-        min: 'dataMin',
-        max: 'dataMax',
-      },
-      {
-        type: 'category',
-        gridIndex: 1,
-        data: xLabels,
-        boundaryGap: true,
-        axisLine: { lineStyle: { color: 'rgba(148, 163, 184, 0.2)' } },
-        axisTick: { show: false },
-        axisLabel: { show: false },
-        min: 'dataMin',
-        max: 'dataMax',
-      },
-    ],
-    yAxis: [
-      {
-        type: 'value',
-        scale: true,
-        axisLine: { show: false },
-        axisTick: { show: false },
-        splitLine: { lineStyle: { color: 'rgba(148, 163, 184, 0.12)' } },
-        axisLabel: {
-          color: '#64748b',
-          formatter: (value: number) => formatNumber(Math.round(value)),
-        },
-      },
-      {
-        type: 'value',
-        gridIndex: 1,
-        min: 0,
-        max: Math.ceil(volumeMax * 1.08),
-        axisLine: { show: false },
-        axisTick: { show: false },
-        splitLine: { show: false },
-        axisLabel: {
-          color: '#94a3b8',
-          fontSize: 10,
-          formatter: (value: number) => `${Math.round(value / 1000)}k`,
-        },
-      },
-    ],
-    grid: [
-      {
-        left: 18,
-        right: 16,
-        top: 20,
-        height: '56%',
-        containLabel: true,
-      },
-      {
-        left: 18,
-        right: 16,
-        top: '80%',
-        height: '14%',
-        containLabel: true,
-      },
-    ],
-    tooltip: {
-      trigger: 'axis',
-      backgroundColor: 'rgba(15, 23, 42, 0.94)',
-      borderWidth: 0,
-      textStyle: { color: '#f8fafc' },
-      formatter: (params: unknown) => {
-        const safeParams = Array.isArray(params) ? params : []
-        const candle = safeParams.find((entry) => (entry as { seriesName?: string }).seriesName === 'Candle') as { data?: number[]; axisValue?: string } | undefined
-        const volume = safeParams.find((entry) => (entry as { seriesName?: string }).seriesName === 'Volume') as { data?: number } | undefined
-        if (!candle) return ''
-        const [open, close, low, high] = candle.data ?? [0, 0, 0, 0]
-        return [
-          candle.axisValue ?? '',
-          `${item.label} O ${formatNumber(Math.round(open))} / H ${formatNumber(Math.round(high))}`,
-          `L ${formatNumber(Math.round(low))} / C ${formatNumber(Math.round(close))}`,
-          `거래량 ${formatNumber(Math.round(Number(volume?.data ?? 0)))}`,
-        ].join('<br/>')
-      },
-    },
-    axisPointer: {
-      link: [{ xAxisIndex: [0, 1] }],
-    },
-    series: [
-      {
-        name: 'Candle',
-        type: 'candlestick',
-        data: candleSeries,
-        itemStyle: {
-          color: '#dc2626',
-          color0: '#2563eb',
-          borderColor: '#dc2626',
-          borderColor0: '#2563eb',
-        },
-      },
-      {
-        name: 'MA5',
-        type: 'line',
-        data: ma5,
-        smooth: true,
-        showSymbol: false,
-        lineStyle: { width: 1.6, color: '#f59e0b' },
-      },
-      {
-        name: 'MA20',
-        type: 'line',
-        data: ma20,
-        smooth: true,
-        showSymbol: false,
-        lineStyle: { width: 1.6, color: '#6366f1' },
-      },
-      {
-        name: 'MA60',
-        type: 'line',
-        data: ma60,
-        smooth: true,
-        showSymbol: false,
-        lineStyle: { width: 1.6, color: '#10b981' },
-      },
-      {
-        name: 'Volume',
-        type: 'bar',
-        xAxisIndex: 1,
-        yAxisIndex: 1,
-        data: activePeriod.points.map((point) => ({
-          value: point.volume,
-          itemStyle: {
-            color: point.close >= point.open ? 'rgba(220, 38, 38, 0.56)' : 'rgba(37, 99, 235, 0.56)',
-          },
-        })),
-      },
-    ],
-  }
-
   const startLabel = activePeriod.points[0]?.label ?? '-'
+  const midLabel = activePeriod.points[Math.floor((activePeriod.points.length - 1) / 2)]?.label ?? '-'
   const endLabel = activePeriod.points[activePeriod.points.length - 1]?.label ?? '-'
 
   return (
@@ -268,7 +272,9 @@ function IndexChartCard({ item }: { item: IndexMetric }) {
         <div>
           <span className="label">{item.label}</span>
           <strong>{formatNumber(Math.round(activePeriod.stats.latest * 100) / 100)}</strong>
-          <p className={activePeriod.stats.changeRate >= 0 ? 'up' : 'down'}>{formatSignedRate(activePeriod.stats.changeRate)} · {seriesColor === '#dc2626' ? '상승 우위' : '하락 우위'}</p>
+          <p className={activePeriod.stats.changeRate >= 0 ? 'up' : 'down'}>
+            {formatSignedRate(activePeriod.stats.changeRate)} · {activePeriod.stats.changeRate >= 0 ? '상승 우위' : '하락 우위'}
+          </p>
         </div>
         <div className="index-period-tabs">
           {item.periods.map((period) => (
@@ -283,14 +289,19 @@ function IndexChartCard({ item }: { item: IndexMetric }) {
           ))}
         </div>
       </div>
-      {ChartComponent ? (
-        <ChartComponent option={chartOption} notMerge lazyUpdate className="tv-chart-container" />
-      ) : (
-        <div className="tv-chart-container chart-loading">차트 로딩 중...</div>
-      )}
+
+      <IndexChartCanvas period={activePeriod} />
+
+      <div className="chart-legend">
+        <span className="legend-chip amber">MA5</span>
+        <span className="legend-chip indigo">MA20</span>
+        <span className="legend-chip emerald">MA60</span>
+        <span className="legend-chip muted">Volume</span>
+      </div>
 
       <div className="chart-axis">
         <span>{startLabel}</span>
+        <span>{midLabel}</span>
         <span>{endLabel}</span>
       </div>
 
@@ -306,6 +317,10 @@ function IndexChartCard({ item }: { item: IndexMetric }) {
         <div>
           <span className="label">저가</span>
           <strong>{formatNumber(Math.round(activePeriod.stats.low * 100) / 100)}</strong>
+        </div>
+        <div>
+          <span className="label">등락률</span>
+          <strong>{formatSignedRate(activePeriod.stats.changeRate)}</strong>
         </div>
         <div>
           <span className="label">변동폭</span>

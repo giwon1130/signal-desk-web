@@ -8,8 +8,7 @@ export default defineConfig({
       output: {
         manualChunks(id) {
           if (id.includes('react-dom') || id.includes('/react/')) return 'vendor-react'
-          if (id.includes('echarts-for-react')) return 'vendor-chart-react'
-          if (id.includes('/echarts/')) return 'vendor-chart-core'
+          if (id.includes('lightweight-charts')) return 'vendor-chart'
         },
       },
     },

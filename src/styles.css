@@ -350,6 +350,45 @@ body {
   border: 1px solid rgba(148, 163, 184, 0.10);
 }
 
+.chart-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.legend-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: 999px;
+  padding: 6px 10px;
+  font-size: 12px;
+  font-weight: 700;
+  background: rgba(148, 163, 184, 0.10);
+  color: #475569;
+}
+
+.legend-chip.amber {
+  background: rgba(245, 158, 11, 0.14);
+  color: #b45309;
+}
+
+.legend-chip.indigo {
+  background: rgba(99, 102, 241, 0.14);
+  color: #4338ca;
+}
+
+.legend-chip.emerald {
+  background: rgba(16, 185, 129, 0.14);
+  color: #047857;
+}
+
+.legend-chip.muted {
+  background: rgba(148, 163, 184, 0.14);
+  color: #475569;
+}
+
 .chart-loading {
   display: flex;
   align-items: center;
@@ -376,7 +415,7 @@ body {
 
 .chart-stats-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 10px;
   margin-top: 14px;
 }
