@@ -57,8 +57,37 @@ function IndexChartCard({ item }: { item: IndexMetric }) {
 
   useEffect(() => {
     let mounted = true
-    import('echarts-for-react').then((module) => {
-      if (mounted) setChartComponent(() => module.default)
+    Promise.all([
+      import('echarts-for-react/lib/core'),
+      import('echarts/core'),
+      import('echarts/charts'),
+      import('echarts/components'),
+      import('echarts/renderers'),
+    ]).then(([reactCoreModule, echartsCoreModule, chartsModule, componentsModule, renderersModule]) => {
+      const { default: ReactEChartsCore } = reactCoreModule
+      const { echarts } = echartsCoreModule
+      const { CandlestickChart, BarChart, LineChart } = chartsModule
+      const { GridComponent, TooltipComponent, AxisPointerComponent } = componentsModule
+      const { CanvasRenderer } = renderersModule
+
+      echarts.use([
+        CandlestickChart,
+        BarChart,
+        LineChart,
+        GridComponent,
+        TooltipComponent,
+        AxisPointerComponent,
+        CanvasRenderer,
+      ])
+
+      if (mounted) {
+        setChartComponent(() => ((props) => <ReactEChartsCore echarts={echarts} {...props} />) as ComponentType<{
+          option: unknown
+          notMerge?: boolean
+          lazyUpdate?: boolean
+          className?: string
+        }>)
+      }
     })
     return () => {
       mounted = false
