@@ -7,6 +7,7 @@ import { PaperTab } from './components/tabs/PaperTab'
 import { PortfolioTab } from './components/tabs/PortfolioTab'
 import { StocksTab } from './components/tabs/StocksTab'
 import {
+  API_BASE_URL,
   emptyAiPickForm,
   emptyAiTrackRecordForm,
   emptyPaperPositionForm,
@@ -38,6 +39,8 @@ import type {
   PortfolioForm,
   MarketNews,
   StockDetailSnapshot,
+  StockMarketFilter,
+  StockSearchResult,
   WatchForm,
 } from './types'
 
@@ -59,6 +62,9 @@ export default function App() {
   const [activeMarketTab, setActiveMarketTab] = useState<MarketTab>('KR')
   const [activeMarketPrimaryTab, setActiveMarketPrimaryTab] = useState<MarketPrimaryTab>('chart')
   const [stockSearch, setStockSearch] = useState('')
+  const [stockMarketFilter, setStockMarketFilter] = useState<StockMarketFilter>('ALL')
+  const [stockSearchResults, setStockSearchResults] = useState<StockSearchResult[]>([])
+  const [isSearchingStocks, setIsSearchingStocks] = useState(false)
   const [watchForm, setWatchForm] = useState<WatchForm>(emptyWatchForm)
   const [portfolioForm, setPortfolioForm] = useState<PortfolioForm>(emptyPortfolioForm)
   const [isSavingWatch, setIsSavingWatch] = useState(false)
@@ -95,19 +101,54 @@ export default function App() {
     setExpandedNewsClusters([])
   }, [activeMarketTab])
 
+  // Debounced stock search
+  useEffect(() => {
+    const keyword = stockSearch.trim()
+    if (keyword.length < 2) {
+      setStockSearchResults([])
+      return
+    }
+    setIsSearchingStocks(true)
+    const timer = setTimeout(async () => {
+      try {
+        const marketParam = stockMarketFilter !== 'ALL' ? `&market=${stockMarketFilter}` : ''
+        const response = await fetch(`${API_BASE_URL}/api/v1/market/stocks/search?q=${encodeURIComponent(keyword)}${marketParam}&limit=30`)
+        if (!response.ok) throw new Error('search')
+        const result = await response.json() as { success: boolean; data: StockSearchResult[] }
+        setStockSearchResults(result.data)
+      } catch {
+        setStockSearchResults([])
+      } finally {
+        setIsSearchingStocks(false)
+      }
+    }, 300)
+    return () => clearTimeout(timer)
+  }, [stockSearch, stockMarketFilter])
+
   const marketSection = useMemo(
     () => (activeMarketTab === 'KR' ? overview.koreaMarket : overview.usMarket),
     [activeMarketTab, overview],
   )
 
   const filteredMovers = useMemo(() => {
-    const items = [...overview.koreaMarket.leadingStocks, ...overview.usMarket.leadingStocks]
+    // When search API results are available, use them
+    if (stockSearch.trim().length >= 2 && stockSearchResults.length > 0) {
+      return stockSearchResults
+    }
+    // Otherwise filter leading stocks by market filter + keyword
+    const baseItems = [...overview.koreaMarket.leadingStocks, ...overview.usMarket.leadingStocks]
+    const marketFiltered = stockMarketFilter === 'ALL'
+      ? baseItems
+      : baseItems.filter((item) => {
+          const isKr = overview.koreaMarket.leadingStocks.some((s) => s.ticker === item.ticker)
+          return stockMarketFilter === 'KR' ? isKr : !isKr
+        })
     const keyword = stockSearch.trim().toLowerCase()
-    if (!keyword) return items
-    return items.filter((item) =>
+    if (!keyword) return marketFiltered
+    return marketFiltered.filter((item) =>
       `${item.ticker} ${item.name} ${item.sector}`.toLowerCase().includes(keyword),
     )
-  }, [overview, stockSearch])
+  }, [overview, stockSearch, stockSearchResults, stockMarketFilter])
 
   const filteredWatchlist = useMemo(() => {
     const keyword = stockSearch.trim().toLowerCase()
@@ -409,6 +450,10 @@ export default function App() {
         <StocksTab
           stockSearch={stockSearch}
           setStockSearch={setStockSearch}
+          stockMarketFilter={stockMarketFilter}
+          setStockMarketFilter={setStockMarketFilter}
+          isSearchingStocks={isSearchingStocks}
+          isSearchMode={stockSearch.trim().length >= 2}
           filteredMovers={filteredMovers}
           onSelectStock={setSelectedStockKey}
           onApplyMoverToWatchForm={applyMoverToWatchForm}

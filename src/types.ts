@@ -285,6 +285,18 @@ export type ApiResponse<T> = {
   data: T
 }
 
+export type StockSearchResult = {
+  ticker: string
+  name: string
+  market: string
+  sector: string
+  price: number
+  changeRate: number
+  stance: string
+}
+
+export type StockMarketFilter = 'ALL' | 'KR' | 'US'
+
 export type MainTab = 'market' | 'stocks' | 'portfolio' | 'ai' | 'paper'
 export type MarketTab = 'KR' | 'US'
 export type MarketPrimaryTab = 'chart' | 'flow'

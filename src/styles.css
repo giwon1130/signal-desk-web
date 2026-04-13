@@ -538,6 +538,16 @@ body {
 .stock-result-count,
 .source-summary { color: var(--t4); font-size: 14px; }
 
+.stock-market-filter {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.stock-search-meta {
+  margin-bottom: 10px;
+}
+
 .stock-detail-panel {
   margin-top: 16px;
   padding: 16px;

@@ -1,11 +1,15 @@
 import { SourceBadge } from '../SourceBadge'
 import { formatNumber, formatSignedRate } from '../../lib/format'
 import { emptyWatchForm } from '../../constants'
-import type { StockDetailSnapshot, TickerSnapshot, WatchForm, WatchItem } from '../../types'
+import type { StockDetailSnapshot, StockMarketFilter, TickerSnapshot, WatchForm, WatchItem } from '../../types'
 
 type Props = {
   stockSearch: string
   setStockSearch: React.Dispatch<React.SetStateAction<string>>
+  stockMarketFilter: StockMarketFilter
+  setStockMarketFilter: React.Dispatch<React.SetStateAction<StockMarketFilter>>
+  isSearchingStocks: boolean
+  isSearchMode: boolean
   filteredMovers: TickerSnapshot[]
   onSelectStock: (detailKey: string) => void
   onApplyMoverToWatchForm: (item: TickerSnapshot, market: 'KR' | 'US') => void
@@ -23,6 +27,10 @@ type Props = {
 export function StocksTab({
   stockSearch,
   setStockSearch,
+  stockMarketFilter,
+  setStockMarketFilter,
+  isSearchingStocks,
+  isSearchMode,
   filteredMovers,
   onSelectStock,
   onApplyMoverToWatchForm,
@@ -51,19 +59,43 @@ export function StocksTab({
             value={stockSearch}
             onChange={(event) => setStockSearch(event.target.value)}
             className="stock-search-input"
-            placeholder="종목명, 티커, 섹터 검색"
+            placeholder="종목명, 티커, 섹터 검색 (2자 이상)"
           />
-          <span className="stock-result-count">{filteredMovers.length}개</span>
+          <div className="stock-market-filter">
+            {(['ALL', 'KR', 'US'] as StockMarketFilter[]).map((f) => (
+              <button
+                key={f}
+                type="button"
+                className={`period-chip${stockMarketFilter === f ? ' active' : ''}`}
+                onClick={() => setStockMarketFilter(f)}
+              >
+                {f}
+              </button>
+            ))}
+          </div>
+        </div>
+        <div className="stock-search-meta">
+          {isSearchingStocks
+            ? <span className="stock-result-count">검색 중...</span>
+            : isSearchMode
+              ? <span className="stock-result-count">검색 결과 {filteredMovers.length}개</span>
+              : <span className="stock-result-count">주요 종목 {filteredMovers.length}개</span>
+          }
         </div>
         <div className="watchlist">
-          {filteredMovers.map((item) => {
-            const market = koreaMarketTickers.includes(item.ticker) ? 'KR' : 'US'
+          {filteredMovers.length === 0 && !isSearchingStocks ? (
+            <p className="stock-result-count">
+              {isSearchMode ? `'${stockSearch}' 검색 결과가 없어.` : '종목 데이터를 불러오는 중이야.'}
+            </p>
+          ) : filteredMovers.map((item) => {
+            const market = ('market' in item ? (item as { market: string }).market : null)
+              ?? (koreaMarketTickers.includes(item.ticker) ? 'KR' : 'US')
             const detailKey = `${market}:${item.ticker}`
             return (
               <article key={`${item.ticker}-${item.name}`} className="watch-item">
                 <div>
                   <strong>{item.name}</strong>
-                  <span>{item.ticker} · {item.sector}</span>
+                  <span><span className={`mini-badge ${market === 'KR' ? 'user' : 'base'}`}>{market}</span> {item.ticker} · {item.sector}</span>
                 </div>
                 <div className="watch-metrics">
                   <strong>{formatNumber(item.price)}</strong>
@@ -74,7 +106,7 @@ export function StocksTab({
                   <button type="button" className="ghost-button" onClick={() => onSelectStock(detailKey)}>
                     상세 보기
                   </button>
-                  <button type="button" className="action-button" onClick={() => onApplyMoverToWatchForm(item, market)}>
+                  <button type="button" className="action-button" onClick={() => onApplyMoverToWatchForm(item, market as 'KR' | 'US')}>
                     관심 추가
                   </button>
                 </div>
