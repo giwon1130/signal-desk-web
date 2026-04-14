@@ -78,6 +78,7 @@ export function useMarketData(): UseMarketDataResult {
         marketStatus: result.data.marketStatus,
         summary: result.data.summary,
         marketSummary: result.data.marketSummary,
+        alternativeSignals: result.data.alternativeSignals,
         marketSessions: result.data.marketSessions,
         briefing: result.data.briefing,
         sourceNotes: result.data.sourceNotes,

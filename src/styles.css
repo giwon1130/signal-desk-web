@@ -352,6 +352,19 @@ body {
   line-height: 1;
 }
 
+.news-inline-link {
+  display: inline-flex;
+  margin-top: 8px;
+  color: var(--accent-2);
+  font-size: 12px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.news-inline-link:hover {
+  text-decoration: underline;
+}
+
 .index-card strong {
   display: block;
   font-size: 28px;

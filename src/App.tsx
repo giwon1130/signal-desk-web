@@ -436,6 +436,7 @@ export default function App() {
           activeMarketPrimaryTab={activeMarketPrimaryTab}
           setActiveMarketPrimaryTab={setActiveMarketPrimaryTab}
           marketSection={marketSection}
+          alternativeSignals={overview.alternativeSignals}
           marketNewsDigest={marketNewsDigest}
           newsClusters={newsClusters}
           visibleNewsClusters={visibleNewsClusters}

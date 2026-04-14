@@ -5,6 +5,16 @@ export type SummaryMetric = {
   note: string
 }
 
+export type AlternativeSignal = {
+  label: string
+  score: number
+  state: string
+  note: string
+  source: string
+  url: string
+  experimental: boolean
+}
+
 export type IndexMetric = {
   label: string
   value: number
@@ -219,6 +229,7 @@ export type MarketOverview = {
   marketStatus: string
   summary: string
   marketSummary: SummaryMetric[]
+  alternativeSignals: AlternativeSignal[]
   marketSessions: MarketSessionStatus[]
   koreaMarket: MarketSection
   usMarket: MarketSection
@@ -243,6 +254,7 @@ export type MarketSummaryResponse = {
   marketStatus: string
   summary: string
   marketSummary: SummaryMetric[]
+  alternativeSignals: AlternativeSignal[]
   marketSessions: MarketSessionStatus[]
   briefing: DailyBriefing
   sourceNotes: SourceNote[]

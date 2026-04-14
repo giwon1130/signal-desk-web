@@ -2,7 +2,7 @@ import { lazy, Suspense } from 'react'
 import { SourceBadge } from '../SourceBadge'
 import { getSentimentIcon } from '../../lib/format'
 import { getImpactLevelLabel } from '../../lib/news'
-import type { MarketPrimaryTab, MarketSection, MarketTab, NewsCluster } from '../../types'
+import type { AlternativeSignal, MarketPrimaryTab, MarketSection, MarketTab, NewsCluster } from '../../types'
 
 const MarketIndexCharts = lazy(() => import('../MarketIndexCharts'))
 
@@ -12,6 +12,7 @@ type Props = {
   activeMarketPrimaryTab: MarketPrimaryTab
   setActiveMarketPrimaryTab: React.Dispatch<React.SetStateAction<MarketPrimaryTab>>
   marketSection: MarketSection
+  alternativeSignals: AlternativeSignal[]
   marketNewsDigest: string
   newsClusters: NewsCluster[]
   visibleNewsClusters: NewsCluster[]
@@ -27,6 +28,7 @@ export function MarketTab({
   activeMarketPrimaryTab,
   setActiveMarketPrimaryTab,
   marketSection,
+  alternativeSignals,
   marketNewsDigest,
   newsClusters,
   visibleNewsClusters,
@@ -127,6 +129,31 @@ export function MarketTab({
                 </div>
                 <strong>{metric.state} · {metric.score}</strong>
                 <p>{metric.note}</p>
+              </article>
+            ))}
+          </div>
+        </article>
+
+        <article className="panel">
+          <div className="section-heading">
+            <div>
+              <p className="eyebrow">Alternative</p>
+              <h2>실험 지표</h2>
+            </div>
+            <SourceBadge label="EXPERIMENTAL" tone="mock" />
+          </div>
+          <div className="signal-list market-insight-list">
+            {alternativeSignals.map((signal) => (
+              <article key={signal.label} className="signal-item">
+                <div className="signal-title-row">
+                  <span className="label">{signal.label}</span>
+                  <span className="sentiment-icon" aria-hidden="true">{getSentimentIcon(signal.score)}</span>
+                </div>
+                <strong>{signal.state} · {signal.score}</strong>
+                <p>{signal.note}</p>
+                <a className="news-inline-link" href={signal.url} target="_blank" rel="noreferrer">
+                  {signal.source}
+                </a>
               </article>
             ))}
           </div>
