@@ -150,6 +150,11 @@ export function MarketTab({
                   <span className="sentiment-icon" aria-hidden="true">{getSentimentIcon(signal.score)}</span>
                 </div>
                 <strong>{signal.state} · {signal.score}</strong>
+                <div className="signal-chip-row">
+                  {signal.highlights.map((item) => (
+                    <span key={`${signal.label}-${item}`} className="signal-data-chip">{item}</span>
+                  ))}
+                </div>
                 <p>{signal.note}</p>
                 <a className="news-inline-link" href={signal.url} target="_blank" rel="noreferrer">
                   {signal.source}

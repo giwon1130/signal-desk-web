@@ -10,6 +10,7 @@ export type AlternativeSignal = {
   score: number
   state: string
   note: string
+  highlights: string[]
   source: string
   url: string
   experimental: boolean
