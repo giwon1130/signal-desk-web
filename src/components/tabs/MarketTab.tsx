@@ -37,6 +37,12 @@ export function MarketTab({
   showAllNewsGroups,
   setShowAllNewsGroups,
 }: Props) {
+  const getAlternativeTone = (score: number) => {
+    if (score >= 75) return 'hot'
+    if (score >= 45) return 'warm'
+    return 'calm'
+  }
+
   return (
     <>
       <section className="sub-tab-bar">
@@ -144,12 +150,15 @@ export function MarketTab({
           </div>
           <div className="signal-list market-insight-list">
             {alternativeSignals.map((signal) => (
-              <article key={signal.label} className="signal-item">
+              <article key={signal.label} className={`signal-item signal-item-alt signal-item-alt--${getAlternativeTone(signal.score)}`}>
                 <div className="signal-title-row">
                   <span className="label">{signal.label}</span>
                   <span className="sentiment-icon" aria-hidden="true">{getSentimentIcon(signal.score)}</span>
                 </div>
-                <strong>{signal.state} · {signal.score}</strong>
+                <div className="signal-score-row">
+                  <strong>{signal.state}</strong>
+                  <span className="signal-score-badge">{signal.score}</span>
+                </div>
                 <div className="signal-chip-row">
                   {signal.highlights.map((item) => (
                     <span key={`${signal.label}-${item}`} className="signal-data-chip">{item}</span>
