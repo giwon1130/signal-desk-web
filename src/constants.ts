@@ -36,6 +36,7 @@ export const emptyOverview: MarketOverview = {
   summary: '',
   marketSummary: [],
   alternativeSignals: [],
+  watchAlerts: [],
   marketSessions: [],
   koreaMarket: { market: 'KR', title: '한국 시장', indices: [], sentiment: [], investorFlows: [], leadingStocks: [] },
   usMarket: { market: 'US', title: '미국 시장', indices: [], sentiment: [], investorFlows: [], leadingStocks: [] },

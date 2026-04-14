@@ -16,6 +16,18 @@ export type AlternativeSignal = {
   experimental: boolean
 }
 
+export type WatchAlert = {
+  severity: 'high' | 'medium' | 'low'
+  category: string
+  market: string
+  ticker: string
+  name: string
+  title: string
+  note: string
+  score: number
+  tags: string[]
+}
+
 export type IndexMetric = {
   label: string
   value: number
@@ -231,6 +243,7 @@ export type MarketOverview = {
   summary: string
   marketSummary: SummaryMetric[]
   alternativeSignals: AlternativeSignal[]
+  watchAlerts: WatchAlert[]
   marketSessions: MarketSessionStatus[]
   koreaMarket: MarketSection
   usMarket: MarketSection
@@ -256,6 +269,7 @@ export type MarketSummaryResponse = {
   summary: string
   marketSummary: SummaryMetric[]
   alternativeSignals: AlternativeSignal[]
+  watchAlerts: WatchAlert[]
   marketSessions: MarketSessionStatus[]
   briefing: DailyBriefing
   sourceNotes: SourceNote[]

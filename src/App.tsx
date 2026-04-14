@@ -41,6 +41,7 @@ import type {
   StockDetailSnapshot,
   StockMarketFilter,
   StockSearchResult,
+  WatchAlert,
   WatchForm,
 } from './types'
 
@@ -341,6 +342,29 @@ export default function App() {
 
   const activeTabError = tabErrors[activeTab]
   const activeTabLoading = tabLoading[activeTab]
+  const getAlertTone = (severity: string) => {
+    if (severity === 'high') return 'high'
+    if (severity === 'medium') return 'medium'
+    return 'low'
+  }
+
+  const focusWatchAlert = (alert: WatchAlert) => {
+    setSelectedStockKey(`${alert.market}:${alert.ticker}`)
+
+    if (alert.category === 'portfolio') {
+      setActiveTab('portfolio')
+      return
+    }
+
+    if (alert.category === 'ai') {
+      setActiveTab('ai')
+      return
+    }
+
+    setStockMarketFilter(alert.market)
+    setStockSearch(alert.ticker)
+    setActiveTab('stocks')
+  }
 
   return (
     <main className="page-shell">
@@ -405,6 +429,46 @@ export default function App() {
           </article>
         ))}
       </section>
+
+      {overview.watchAlerts.length ? (
+        <section className="panel alerts-panel">
+          <div className="section-heading">
+            <div>
+              <p className="eyebrow">Watch Alerts</p>
+              <h2>관심종목 이상징후</h2>
+            </div>
+            <SourceBadge label={`${overview.watchAlerts.length}건`} tone="mixed" />
+          </div>
+          <div className="alerts-grid">
+            {overview.watchAlerts.map((alert) => (
+              <article key={`${alert.category}-${alert.market}-${alert.ticker}`} className={`watch-alert-card watch-alert-card--${getAlertTone(alert.severity)}`}>
+                <div className="watch-alert-top">
+                  <div>
+                    <span className="label">{alert.market} · {alert.ticker}</span>
+                    <strong>{alert.name}</strong>
+                  </div>
+                  <span className={`watch-alert-badge watch-alert-badge--${getAlertTone(alert.severity)}`}>
+                    {alert.severity === 'high' ? 'HIGH' : alert.severity === 'medium' ? 'MEDIUM' : 'LOW'}
+                  </span>
+                </div>
+                <p className="watch-alert-title">{alert.title}</p>
+                <p className="watch-alert-note">{alert.note}</p>
+                <div className="signal-chip-row">
+                  {alert.tags.map((tag) => (
+                    <span key={`${alert.market}-${alert.ticker}-${tag}`} className="signal-data-chip">{tag}</span>
+                  ))}
+                  <span className="signal-data-chip">점수 {alert.score}</span>
+                </div>
+                <div className="inline-actions">
+                  <button type="button" className="action-button" onClick={() => focusWatchAlert(alert)}>
+                    바로 보기
+                  </button>
+                </div>
+              </article>
+            ))}
+          </div>
+        </section>
+      ) : null}
 
       <section className="grid cards coverage-cards">
         <article className="panel metric-card">
