@@ -165,6 +165,9 @@ export function MarketTab({
                   ))}
                 </div>
                 <p>{signal.note}</p>
+                {signal.personalImpact ? (
+                  <p className="signal-personal-impact">{signal.personalImpact}</p>
+                ) : null}
                 <a className="news-inline-link" href={signal.url} target="_blank" rel="noreferrer">
                   {signal.source}
                 </a>

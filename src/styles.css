@@ -1022,6 +1022,78 @@ body {
   gap: 10px;
 }
 
+/* ===== Briefing (Phase 1) ============================================= */
+.briefing-slot-badge {
+  display: inline-block; padding: 4px 10px; border-radius: 999px;
+  background: #dbeafe; color: #1d4ed8; font-size: 11px; font-weight: 800;
+  letter-spacing: 0.5px;
+}
+.briefing-context-row {
+  display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0 4px;
+}
+.briefing-context-chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 6px 10px; border-radius: 8px; background: rgba(15,23,42,0.04);
+  border: 1px solid rgba(15,23,42,0.08); font-size: 12px;
+}
+.briefing-context-chip .label { color: #64748b; font-weight: 700; }
+.briefing-context-chip strong { color: #0f172a; font-weight: 800; }
+.briefing-context-chip strong.pos { color: #dc2626; }
+.briefing-context-chip strong.neg { color: #2563eb; }
+.briefing-action-list {
+  list-style: none; padding: 0; margin: 12px 0 0; display: grid; gap: 8px;
+}
+.briefing-action-row {
+  border-left: 3px solid #94a3b8; padding: 8px 12px; border-radius: 0 8px 8px 0;
+  background: rgba(15,23,42,0.03);
+}
+.briefing-action-row.priority-high   { border-left-color: #dc2626; }
+.briefing-action-row.priority-medium { border-left-color: #f59e0b; }
+.briefing-action-row strong { display: block; color: #0f172a; font-weight: 800; font-size: 13px; }
+.briefing-action-row p { margin: 2px 0 0; color: #475569; font-size: 12px; line-height: 1.4; }
+.briefing-action-row small { color: #94a3b8; font-size: 10px; font-weight: 700; }
+
+/* ===== Alt signal personal impact (Phase 2) =========================== */
+.signal-personal-impact {
+  margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(15,23,42,0.08);
+  color: #1d4ed8; font-size: 12px; font-weight: 800;
+}
+
+/* ===== User status badge (Phase 2) ==================================== */
+.user-status-badge {
+  display: inline-block; margin-left: 6px; padding: 2px 6px; border-radius: 6px;
+  font-size: 10px; font-weight: 800; letter-spacing: 0.5px;
+  border: 1px solid; vertical-align: middle;
+}
+.user-status-badge.held    { background: #fee2e2; color: #b91c1c; border-color: #fecaca; }
+.user-status-badge.watched { background: #dbeafe; color: #1d4ed8; border-color: #bfdbfe; }
+
+/* ===== AI hit-rate metrics (Phase 3) ================================== */
+.ai-metrics-card {
+  margin: 12px 0; padding: 14px; border-radius: 12px;
+  background: rgba(15,23,42,0.03); border: 1px solid rgba(15,23,42,0.08);
+}
+.ai-metrics-header {
+  display: flex; justify-content: space-between; align-items: center;
+  font-size: 11px; color: #64748b; font-weight: 700;
+}
+.ai-metrics-row { display: flex; gap: 12px; margin-top: 8px; }
+.ai-metrics-cell {
+  flex: 1; padding: 10px; border-radius: 10px; background: #ffffff;
+  border: 1px solid rgba(15,23,42,0.06); display: grid; gap: 2px;
+}
+.ai-metrics-cell .label { color: #64748b; font-size: 11px; font-weight: 700; }
+.ai-metrics-cell strong { font-size: 20px; font-weight: 900; color: #0f172a; }
+.ai-metrics-cell strong.pos { color: #dc2626; }
+.ai-metrics-cell strong.neg { color: #2563eb; }
+.ai-metrics-cell small { color: #94a3b8; font-size: 10px; font-weight: 600; }
+
+.ai-log-news-link {
+  display: inline-block; margin-top: 6px; color: #1d4ed8;
+  font-size: 12px; font-weight: 700; text-decoration: none;
+}
+.ai-log-news-link:hover { text-decoration: underline; }
+
 .source-panel { margin-top: 8px; }
 .source-list { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 

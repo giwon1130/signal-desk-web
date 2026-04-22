@@ -44,6 +44,34 @@ export function AiTab({
           <span className="tag">{aiRecommendations.generatedDate}</span>
         </div>
         <p className="headline">{aiRecommendations.summary}</p>
+
+        {aiRecommendations.metrics ? (
+          <article className="ai-metrics-card">
+            <div className="ai-metrics-header">
+              <span className="eyebrow">최근 {aiRecommendations.metrics.windowDays}일 실적</span>
+              <span>{aiRecommendations.metrics.totalCount}건 기준</span>
+            </div>
+            <div className="ai-metrics-row">
+              <div className="ai-metrics-cell">
+                <span className="label">적중률</span>
+                <strong className={aiRecommendations.metrics.hitRate >= 0.5 ? 'pos' : 'neg'}>
+                  {Math.round(aiRecommendations.metrics.hitRate * 100)}%
+                </strong>
+                <small>{aiRecommendations.metrics.successCount}/{aiRecommendations.metrics.totalCount}건</small>
+              </div>
+              <div className="ai-metrics-cell">
+                <span className="label">평균 수익률</span>
+                <strong className={aiRecommendations.metrics.averageReturnRate >= 0 ? 'pos' : 'neg'}>
+                  {formatSignedRate(aiRecommendations.metrics.averageReturnRate)}
+                </strong>
+                <small>
+                  최고 {formatSignedRate(aiRecommendations.metrics.bestReturnRate)} · 최저 {formatSignedRate(aiRecommendations.metrics.worstReturnRate)}
+                </small>
+              </div>
+            </div>
+          </article>
+        ) : null}
+
         <div className="watchlist">
           {aiRecommendations.picks.map((pick) => {
             const newsBridge = aiPickNewsLinks.find((item) => item.pickKey === `${pick.market}-${pick.ticker}-${pick.id || pick.name}`)
@@ -51,7 +79,14 @@ export function AiTab({
             return (
               <article key={`${pick.source}-${pick.id || `${pick.market}-${pick.ticker}`}`} className="watch-item">
                 <div>
-                  <strong>{pick.name}</strong>
+                  <strong>
+                    {pick.name}
+                    {pick.userStatus && pick.userStatus !== 'NEW' ? (
+                      <span className={`user-status-badge ${pick.userStatus.toLowerCase()}`}>
+                        {pick.userStatus === 'HELD' ? '보유' : '관심'}
+                      </span>
+                    ) : null}
+                  </strong>
                   <span>{pick.market} · {pick.ticker}</span>
                 </div>
                 <div className="watch-metrics">
@@ -211,7 +246,14 @@ export function AiTab({
           {aiRecommendations.executionLogs.map((log) => (
             <article key={`${log.date}-${log.market}-${log.ticker}-${log.stage}`} className="watch-item">
               <div>
-                <strong>{log.name}</strong>
+                <strong>
+                  {log.name}
+                  {log.userStatus && log.userStatus !== 'NEW' ? (
+                    <span className={`user-status-badge ${log.userStatus.toLowerCase()}`}>
+                      {log.userStatus === 'HELD' ? '보유' : '관심'}
+                    </span>
+                  ) : null}
+                </strong>
                 <span>{log.date} · {log.market} · {log.ticker} · {log.stage}</span>
               </div>
               <div className="watch-metrics">
@@ -221,6 +263,11 @@ export function AiTab({
                 </span>
               </div>
               <p>{log.rationale}</p>
+              {log.newsUrl ? (
+                <a className="ai-log-news-link" href={log.newsUrl} target="_blank" rel="noreferrer">
+                  🔗 {log.newsTitle ?? '관련 뉴스 열기'}
+                </a>
+              ) : null}
               <div className="inline-actions">
                 {log.confidence != null ? <span className="mini-badge base">신뢰도 {log.confidence}</span> : null}
                 {log.expectedReturnRate != null ? <span className="mini-badge base">예상 {formatSignedRate(log.expectedReturnRate)}</span> : null}

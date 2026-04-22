@@ -120,10 +120,62 @@ export function PortfolioTab({
           <div className="section-heading">
             <div>
               <p className="eyebrow">Daily Briefing</p>
-              <h2>장전 / 장후</h2>
+              <h2>오늘의 브리핑</h2>
             </div>
+            {briefing.slot ? (
+              <span className="briefing-slot-badge">
+                {briefing.slot === 'PRE_MARKET' ? '장 전'
+                  : briefing.slot === 'INTRADAY' ? '장 중'
+                  : briefing.slot === 'POST_MARKET' ? '마감 후'
+                  : briefing.slot === 'WEEKEND' ? '주말'
+                  : briefing.slot === 'HOLIDAY' ? '휴장'
+                  : '오늘'}
+              </span>
+            ) : null}
           </div>
-          <p className="headline">{briefing.headline}</p>
+          <p className="headline">{briefing.narrative || briefing.headline}</p>
+
+          {briefing.context ? (
+            <div className="briefing-context-row">
+              {briefing.context.holdingPnlLabel ? (
+                <span className="briefing-context-chip">
+                  <span className="label">보유</span>
+                  <strong className={(briefing.context.holdingPnlRate ?? 0) >= 0 ? 'pos' : 'neg'}>
+                    {briefing.context.holdingPnlLabel}
+                  </strong>
+                </span>
+              ) : null}
+              <span className="briefing-context-chip">
+                <span className="label">관심 신호</span>
+                <strong>{briefing.context.watchlistAlertCount}</strong>
+              </span>
+              <span className="briefing-context-chip">
+                <span className="label">분위기</span>
+                <strong>{briefing.context.marketMood}</strong>
+              </span>
+              {briefing.context.keyEvent ? (
+                <span className="briefing-context-chip">
+                  <span className="label">이벤트</span>
+                  <strong>{briefing.context.keyEvent}</strong>
+                </span>
+              ) : null}
+            </div>
+          ) : null}
+
+          {briefing.actionItems && briefing.actionItems.length > 0 ? (
+            <ul className="briefing-action-list">
+              {briefing.actionItems.map((action, idx) => (
+                <li key={`${action.ticker ?? 'noticker'}-${idx}`} className={`briefing-action-row priority-${action.priority}`}>
+                  <strong>{action.title}</strong>
+                  <p>{action.detail}</p>
+                  {action.ticker ? (
+                    <small>{action.market ?? ''}{action.market && action.ticker ? ' · ' : ''}{action.ticker}</small>
+                  ) : null}
+                </li>
+              ))}
+            </ul>
+          ) : null}
+
           <div className="split-list">
             <div>
               <span className="label">Pre Market</span>

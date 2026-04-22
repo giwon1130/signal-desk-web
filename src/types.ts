@@ -14,7 +14,12 @@ export type AlternativeSignal = {
   source: string
   url: string
   experimental: boolean
+  description?: string
+  methodology?: string
+  personalImpact?: string | null
 }
+
+export type UserPickStatus = 'HELD' | 'WATCHED' | 'NEW'
 
 export type WatchAlert = {
   severity: 'high' | 'medium' | 'low'
@@ -146,6 +151,9 @@ export type RecommendationPick = {
   note: string
   expectedReturnRate: number
   source: string
+  userStatus?: UserPickStatus
+  newsUrl?: string | null
+  newsTitle?: string | null
 }
 
 export type RecommendationTrackRecord = {
@@ -173,6 +181,19 @@ export type RecommendationExecutionLog = {
   expectedReturnRate: number | null
   realizedReturnRate: number | null
   source: string
+  userStatus?: UserPickStatus
+  newsUrl?: string | null
+  newsTitle?: string | null
+}
+
+export type RecommendationMetrics = {
+  windowDays: number
+  totalCount: number
+  successCount: number
+  hitRate: number
+  averageReturnRate: number
+  bestReturnRate: number
+  worstReturnRate: number
 }
 
 export type AIRecommendationSection = {
@@ -181,6 +202,7 @@ export type AIRecommendationSection = {
   picks: RecommendationPick[]
   trackRecords: RecommendationTrackRecord[]
   executionLogs: RecommendationExecutionLog[]
+  metrics?: RecommendationMetrics | null
 }
 
 export type PaperPosition = {
@@ -215,10 +237,33 @@ export type PaperTradingSummary = {
   recentTrades: PaperTrade[]
 }
 
+export type BriefingSlot = 'PRE_MARKET' | 'INTRADAY' | 'POST_MARKET' | 'WEEKEND' | 'HOLIDAY'
+
+export type BriefingContext = {
+  holdingPnlLabel: string | null
+  holdingPnlRate: number | null
+  watchlistAlertCount: number
+  marketMood: string
+  keyEvent: string | null
+}
+
+export type BriefingAction = {
+  priority: 'high' | 'medium' | 'low'
+  category: string
+  title: string
+  detail: string
+  ticker: string | null
+  market: string | null
+}
+
 export type DailyBriefing = {
   headline: string
   preMarket: string[]
   afterMarket: string[]
+  narrative?: string
+  slot?: BriefingSlot
+  context?: BriefingContext | null
+  actionItems?: BriefingAction[]
 }
 
 export type SourceNote = {
