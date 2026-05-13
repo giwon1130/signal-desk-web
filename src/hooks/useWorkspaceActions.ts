@@ -73,6 +73,9 @@ export function useWorkspaceActions({
       sector: item.sector,
       stance: item.stance,
       note: `${market === 'KR' ? '국내' : '미국'} 대표 흐름에서 직접 추가`,
+      alertBelow: '',
+      alertAbove: '',
+      volumeAlert: false,
     })
     setActiveTab('stocks')
   }
@@ -110,6 +113,9 @@ export function useWorkspaceActions({
           sector: watchForm.sector.trim(),
           stance: watchForm.stance.trim(),
           note: watchForm.note.trim(),
+          alertBelow: watchForm.alertBelow ? Number(watchForm.alertBelow) || null : null,
+          alertAbove: watchForm.alertAbove ? Number(watchForm.alertAbove) || null : null,
+          volumeAlert: watchForm.volumeAlert,
         }),
       })
       if (!response.ok) throw new Error('save-watch')

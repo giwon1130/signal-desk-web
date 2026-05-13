@@ -28,6 +28,9 @@ export const emptyWatchForm: WatchForm = {
   sector: '',
   stance: '',
   note: '',
+  alertBelow: '',
+  alertAbove: '',
+  volumeAlert: false,
 }
 
 export const emptyOverview: MarketOverview = {

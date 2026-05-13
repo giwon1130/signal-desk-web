@@ -205,6 +205,16 @@ export function StocksTab({
           </div>
           <input value={watchForm.stance} onChange={(event) => setWatchForm((prev) => ({ ...prev, stance: event.target.value }))} placeholder="관점" />
           <textarea value={watchForm.note} onChange={(event) => setWatchForm((prev) => ({ ...prev, note: event.target.value }))} placeholder="메모" rows={3} />
+          <div className="watch-alert-inputs">
+            <input value={watchForm.alertBelow} onChange={(event) => setWatchForm((prev) => ({ ...prev, alertBelow: event.target.value }))} placeholder="하한 알림가 (이 가격 이하 → 알림)" type="number" />
+            <input value={watchForm.alertAbove} onChange={(event) => setWatchForm((prev) => ({ ...prev, alertAbove: event.target.value }))} placeholder="상한 알림가 (이 가격 이상 → 알림)" type="number" />
+            {watchForm.market === 'KR' && (
+              <label className="watch-alert-toggle">
+                <input type="checkbox" checked={watchForm.volumeAlert} onChange={(e) => setWatchForm((prev) => ({ ...prev, volumeAlert: e.target.checked }))} />
+                거래량 급증 알림 (평균 3배↑)
+              </label>
+            )}
+          </div>
           <div className="inline-actions">
             <button type="button" className="primary-button" disabled={isSavingWatch} onClick={() => void onSaveWatchItem()}>
               {isSavingWatch ? '저장 중...' : '관심종목 저장'}
@@ -241,6 +251,13 @@ export function StocksTab({
                   {item.volumeRatio != null && item.volumeRatio >= 2 ? (
                     <span className="signal-data-chip">거래량 {item.volumeRatio.toFixed(1)}배</span>
                   ) : null}
+                </div>
+              ) : null}
+              {(item.alertBelow || item.alertAbove || item.volumeAlert) ? (
+                <div className="signal-chip-row" style={{ marginTop: 4 }}>
+                  {item.alertBelow ? <span className="signal-data-chip" style={{ color: 'var(--down)' }}>↓ {formatNumber(item.alertBelow)} 하한알림</span> : null}
+                  {item.alertAbove ? <span className="signal-data-chip" style={{ color: 'var(--up)' }}>↑ {formatNumber(item.alertAbove)} 상한알림</span> : null}
+                  {item.volumeAlert ? <span className="signal-data-chip">🔥 거래량알림</span> : null}
                 </div>
               ) : null}
               <div className="inline-actions">

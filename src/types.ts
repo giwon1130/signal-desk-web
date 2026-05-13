@@ -131,6 +131,9 @@ export type WatchItem = {
   technical?: TechnicalSignal | null
   volume?: number
   volumeRatio?: number | null
+  alertBelow?: number | null
+  alertAbove?: number | null
+  volumeAlert?: boolean
 }
 
 export type HoldingPosition = {
@@ -398,6 +401,9 @@ export type WatchForm = {
   sector: string
   stance: string
   note: string
+  alertBelow: string
+  alertAbove: string
+  volumeAlert: boolean
 }
 
 export type PortfolioForm = {

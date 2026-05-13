@@ -836,6 +836,39 @@ body {
 .watch-item span,
 .news-item span { color: var(--t4); font-size: 14px; }
 
+.watch-alert-inputs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  padding: 12px;
+  background: var(--surface-3);
+  border-radius: var(--r1);
+  border: 1px solid var(--border-2);
+}
+
+.watch-alert-inputs input[type="number"] {
+  grid-column: auto;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border-input);
+  background: var(--surface-full);
+  font-size: 13px;
+  color: var(--t1);
+  width: 100%;
+}
+
+.watch-alert-toggle {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--t2);
+  cursor: pointer;
+}
+
+.watch-alert-toggle input[type="checkbox"] { cursor: pointer; }
+
 /* ============================================================
    News
    ============================================================ */
