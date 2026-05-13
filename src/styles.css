@@ -105,6 +105,36 @@ body {
 .panel { padding: 24px; }
 
 /* ============================================================
+   Quote Banner
+   ============================================================ */
+.quote-banner {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r3);
+  padding: 16px 20px;
+  margin-bottom: 20px;
+  box-shadow: var(--shadow);
+}
+
+.quote-banner-text {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--t1);
+  line-height: 1.6;
+}
+
+.quote-banner-author {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--t4);
+  text-align: right;
+}
+
+/* ============================================================
    Typography
    ============================================================ */
 .hero h1,

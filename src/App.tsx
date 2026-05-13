@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { QuoteBanner } from './components/QuoteBanner'
 import { SourceBadge } from './components/SourceBadge'
 import { SourceMapPanel } from './components/SourceMapPanel'
 import { AiTab } from './components/tabs/AiTab'
@@ -401,6 +402,8 @@ export default function App() {
           <small>{buildFreshnessLabel(overview?.generatedAt)}</small>
         </div>
       </section>
+
+      <QuoteBanner />
 
       {tabErrors.summary ? <section className="error-card">{tabErrors.summary}</section> : null}
       {activeTabError ? <section className="error-card">{activeTabError}</section> : null}
