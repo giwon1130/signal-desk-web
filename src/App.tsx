@@ -351,7 +351,7 @@ export default function App() {
   const focusWatchAlert = (alert: WatchAlert) => {
     setSelectedStockKey(`${alert.market}:${alert.ticker}`)
 
-    if (alert.category === 'portfolio') {
+    if (alert.category === 'portfolio' || alert.category === 'target' || alert.category === 'concentration') {
       setActiveTab('portfolio')
       return
     }
@@ -361,7 +361,7 @@ export default function App() {
       return
     }
 
-    setStockMarketFilter(alert.market)
+    setStockMarketFilter(alert.market as 'KR' | 'US')
     setStockSearch(alert.ticker)
     setActiveTab('stocks')
   }
@@ -447,9 +447,14 @@ export default function App() {
                     <span className="label">{alert.market} · {alert.ticker}</span>
                     <strong>{alert.name}</strong>
                   </div>
-                  <span className={`watch-alert-badge watch-alert-badge--${getAlertTone(alert.severity)}`}>
-                    {alert.severity === 'high' ? 'HIGH' : alert.severity === 'medium' ? 'MEDIUM' : 'LOW'}
-                  </span>
+                  <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
+                    <span className="signal-data-chip">
+                      {alert.category === 'price' ? '가격' : alert.category === 'news' ? '뉴스' : alert.category === 'ai' ? 'AI' : alert.category === 'portfolio' ? '보유' : alert.category === 'signal' ? '지표' : alert.category === 'technical' ? '기술적' : alert.category === 'volume' ? '거래량' : alert.category === 'target' ? '목표가' : alert.category === 'concentration' ? '집중도' : alert.category}
+                    </span>
+                    <span className={`watch-alert-badge watch-alert-badge--${getAlertTone(alert.severity)}`}>
+                      {alert.severity === 'high' ? 'HIGH' : alert.severity === 'medium' ? 'MED' : 'LOW'}
+                    </span>
+                  </div>
                 </div>
                 <p className="watch-alert-title">{alert.title}</p>
                 <p className="watch-alert-note">{alert.note}</p>

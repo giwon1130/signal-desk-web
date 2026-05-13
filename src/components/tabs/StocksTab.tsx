@@ -227,6 +227,22 @@ export function StocksTab({
                 <span className={item.changeRate >= 0 ? 'up' : 'down'}>{formatSignedRate(item.changeRate)}</span>
               </div>
               <p>{item.stance} · {item.note}</p>
+              {(item.technical || item.volumeRatio != null) ? (
+                <div className="signal-chip-row">
+                  {item.technical?.rsi != null ? (
+                    <span className="signal-data-chip">RSI {item.technical.rsi.toFixed(0)}</span>
+                  ) : null}
+                  {item.technical?.maSignal && item.technical.maSignal !== 'NONE' ? (
+                    <span className="signal-data-chip">{item.technical.maSignal === 'GOLDEN' ? '골든크로스' : '데드크로스'}</span>
+                  ) : null}
+                  {item.technical?.week52State ? (
+                    <span className="signal-data-chip">{item.technical.week52State}</span>
+                  ) : null}
+                  {item.volumeRatio != null && item.volumeRatio >= 2 ? (
+                    <span className="signal-data-chip">거래량 {item.volumeRatio.toFixed(1)}배</span>
+                  ) : null}
+                </div>
+              ) : null}
               <div className="inline-actions">
                 <span className={`mini-badge ${item.source === 'USER' ? 'user' : 'base'}`}>{item.source}</span>
                 <button type="button" className="action-button" onClick={() => onApplyWatchToPortfolioForm(item)}>

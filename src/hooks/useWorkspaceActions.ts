@@ -85,6 +85,8 @@ export function useWorkspaceActions({
       buyPrice: String(item.price),
       currentPrice: String(item.price),
       quantity: '1',
+      targetPrice: '',
+      stopLossPrice: '',
     })
     setActiveTab('portfolio')
   }
@@ -147,6 +149,8 @@ export function useWorkspaceActions({
           buyPrice: Number(portfolioForm.buyPrice),
           currentPrice: Number(portfolioForm.currentPrice),
           quantity: Number(portfolioForm.quantity),
+          targetPrice: portfolioForm.targetPrice ? Number(portfolioForm.targetPrice) : null,
+          stopLossPrice: portfolioForm.stopLossPrice ? Number(portfolioForm.stopLossPrice) : null,
         }),
       })
       if (!response.ok) throw new Error('save-portfolio')

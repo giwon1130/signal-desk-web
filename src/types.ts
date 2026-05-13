@@ -106,6 +106,17 @@ export type MarketNews = {
   impact: string
 }
 
+export type TechnicalSignal = {
+  rsi: number | null
+  rsiState: string | null
+  ma5: number | null
+  ma20: number | null
+  maSignal: string | null
+  week52High: number | null
+  week52Low: number | null
+  week52State: string | null
+}
+
 export type WatchItem = {
   id: string
   market: string
@@ -117,6 +128,9 @@ export type WatchItem = {
   stance: string
   note: string
   source: string
+  technical?: TechnicalSignal | null
+  volume?: number
+  volumeRatio?: number | null
 }
 
 export type HoldingPosition = {
@@ -131,6 +145,8 @@ export type HoldingPosition = {
   evaluationAmount: number
   profitRate: number
   source: string
+  targetPrice?: number | null
+  stopLossPrice?: number | null
 }
 
 export type PortfolioSummary = {
@@ -391,6 +407,8 @@ export type PortfolioForm = {
   buyPrice: string
   currentPrice: string
   quantity: string
+  targetPrice: string
+  stopLossPrice: string
 }
 
 export type PaperPositionForm = {

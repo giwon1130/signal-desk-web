@@ -78,6 +78,8 @@ export const emptyPortfolioForm: PortfolioForm = {
   buyPrice: '',
   currentPrice: '',
   quantity: '1',
+  targetPrice: '',
+  stopLossPrice: '',
 }
 
 export const emptyPaperPositionForm: PaperPositionForm = {

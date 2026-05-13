@@ -75,6 +75,16 @@ export function PortfolioTab({
                 <p>
                   매수가 {formatNumber(position.buyPrice)} / 평가금액 {formatNumber(position.evaluationAmount)} / 손익 {formatNumber(position.profitAmount)}
                 </p>
+                {(position.targetPrice || position.stopLossPrice) ? (
+                  <div className="signal-chip-row">
+                    {position.targetPrice ? (
+                      <span className="signal-data-chip">목표 {formatNumber(position.targetPrice)}</span>
+                    ) : null}
+                    {position.stopLossPrice ? (
+                      <span className="signal-data-chip">손절 {formatNumber(position.stopLossPrice)}</span>
+                    ) : null}
+                  </div>
+                ) : null}
                 <div className="inline-actions">
                   <span className={`mini-badge ${position.source === 'USER' ? 'user' : 'base'}`}>{position.source}</span>
                   {position.source === 'USER' && position.id ? (
@@ -106,6 +116,8 @@ export function PortfolioTab({
               <input value={portfolioForm.buyPrice} onChange={(event) => setPortfolioForm((prev) => ({ ...prev, buyPrice: event.target.value }))} placeholder="매수가" />
               <input value={portfolioForm.currentPrice} onChange={(event) => setPortfolioForm((prev) => ({ ...prev, currentPrice: event.target.value }))} placeholder="현재가" />
               <input value={portfolioForm.quantity} onChange={(event) => setPortfolioForm((prev) => ({ ...prev, quantity: event.target.value }))} placeholder="수량" />
+              <input value={portfolioForm.targetPrice} onChange={(event) => setPortfolioForm((prev) => ({ ...prev, targetPrice: event.target.value }))} placeholder="목표가 (선택)" />
+              <input value={portfolioForm.stopLossPrice} onChange={(event) => setPortfolioForm((prev) => ({ ...prev, stopLossPrice: event.target.value }))} placeholder="손절가 (선택)" />
             </div>
             <div className="inline-actions">
               <button type="button" className="primary-button" disabled={isSavingPortfolio} onClick={() => void onSavePortfolioPosition()}>
