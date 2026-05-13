@@ -8,5 +8,6 @@ RUN npm run build
 FROM nginx:1.27-alpine
 WORKDIR /usr/share/nginx/html
 COPY --from=builder /app/dist ./
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+ENV API_UPSTREAM=http://signal-desk-api:8091/api/
+COPY nginx.conf.template /etc/nginx/templates/default.conf.template
 EXPOSE 80
