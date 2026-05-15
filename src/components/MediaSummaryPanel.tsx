@@ -54,6 +54,7 @@ export function MediaSummaryPanel() {
       {items.map((item) => {
         const isOpen = item.id === openId
         const tone = sentimentTone(item.sentiment)
+        const isDigest = item.source === 'NEWS_DIGEST'
         return (
           <article key={item.id} className={`media-summary-item ${isOpen ? 'open' : ''}`}>
             <button
@@ -62,9 +63,12 @@ export function MediaSummaryPanel() {
               onClick={() => setOpenId(isOpen ? '' : item.id)}
             >
               <div className="media-summary-meta">
-                <span className="label">{item.channelTitle}</span>
+                <span className="label">{isDigest ? '📰' : '📺'} {item.channelTitle}</span>
                 <strong>{item.videoTitle}</strong>
-                <small>{formatPublished(item.publishedAt)}{!item.hasTranscript ? ' · 제목 기반 요약' : ''}</small>
+                <small>
+                  {formatPublished(item.publishedAt)}
+                  {!isDigest && !item.hasTranscript ? ' · 제목 기반 요약' : ''}
+                </small>
               </div>
               <span className={`mini-badge ${tone}`}>{sentimentLabel(item.sentiment)}</span>
             </button>
@@ -92,14 +96,16 @@ export function MediaSummaryPanel() {
                   </div>
                 ) : null}
 
-                <a
-                  href={item.videoUrl}
-                  target="_blank"
-                  rel="noreferrer noopener"
-                  className="media-summary-link"
-                >
-                  ↗ 유튜브에서 영상 보기
-                </a>
+                {!isDigest && item.videoUrl ? (
+                  <a
+                    href={item.videoUrl}
+                    target="_blank"
+                    rel="noreferrer noopener"
+                    className="media-summary-link"
+                  >
+                    ↗ 유튜브에서 영상 보기
+                  </a>
+                ) : null}
               </div>
             ) : null}
           </article>
