@@ -21,6 +21,19 @@ export type AlternativeSignal = {
 
 export type UserPickStatus = 'HELD' | 'WATCHED' | 'NEW'
 
+export type MediaSummaryItem = {
+  id: string
+  channelTitle: string
+  videoTitle: string
+  videoUrl: string
+  publishedAt: string
+  summary: string
+  flowAnalysis: string
+  keyTickers: string[]
+  sentiment: 'BULLISH' | 'BEARISH' | 'NEUTRAL'
+  hasTranscript: boolean
+}
+
 export type WatchAlert = {
   severity: 'high' | 'medium' | 'low'
   category: string

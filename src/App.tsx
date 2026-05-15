@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { MediaSummaryPanel } from './components/MediaSummaryPanel'
 import { QuoteBanner } from './components/QuoteBanner'
 import { SourceBadge } from './components/SourceBadge'
 import { SourceMapPanel } from './components/SourceMapPanel'
@@ -477,6 +478,8 @@ export default function App() {
           </div>
         </section>
       ) : null}
+
+      <MediaSummaryPanel />
 
       <section className="grid cards coverage-cards">
         <article className="panel metric-card">
